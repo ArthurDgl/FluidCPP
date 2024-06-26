@@ -3,17 +3,9 @@
 #include <../../../../libs/imgui-sfml/imgui-SFML.h>
 #include <random>
 
-void render(sf::RenderWindow* window, int width, int height, sf::Color* color);
-
-sf::Color randomColor();
-
-int randint(int lowerBound, int upperBound);
-
 int main() {
-    const int width = 600;
-    const int height = 600;
-
-    sf::Color color = randomColor();
+    constexpr int width = 600;
+    constexpr int height = 600;
 
     auto window = sf::RenderWindow{ { width, height }, "CMake SFML Project" };
     window.setFramerateLimit(144);
@@ -32,55 +24,18 @@ int main() {
         ImGui::SFML::Update(window, deltaClock.restart());
 
         ImGui::Begin("Hello, ImGui!");
-
-        if (ImGui::Button("Change Color")) {
-            color = randomColor();
-        }
+        // ImGui code here
 
         ImGui::End();
 
         window.clear();
 
-        render(&window, width, height , &color);
+        // SFML render code here
 
         ImGui::SFML::Render(window);
-
         window.display();
     }
 
     ImGui::SFML::Shutdown();
     return 0;
-}
-
-void render(sf::RenderWindow* window, const int width, const int height, sf::Color* color) {
-    sf::Image image;
-    image.create(width, height);
-
-    for (int x = 0; x < width; x++) {
-        for (int y = 0; y < height; y++) {
-            image.setPixel(x, y, *color);
-        }
-    }
-
-    sf::Texture texture;
-    texture.loadFromImage(image);
-
-    sf::Sprite sprite;
-    sprite.setTexture(texture);
-
-    window->draw(sprite);
-}
-
-sf::Color randomColor() {
-    const sf::Color color(randint(0, 255), randint(0, 255), randint(0, 255));
-    return color;
-}
-
-int randint(const int lowerBound, const int upperBound) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-
-    std::uniform_int_distribution<> distrib(lowerBound, upperBound);
-
-    return distrib(gen);
 }
