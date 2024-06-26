@@ -1,6 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
 project(MyFirstSFML LANGUAGES CXX)
 
+# Add ImGui files
+file(GLOB IMGUI_SRC
+        "libs/imgui/*.cpp"
+        "libs/imgui/*.h"
+)
+
+# Add ImGui-SFML files
+file(GLOB IMGUI_SFML_SRC
+        "libs/imgui-sfml/*.cpp"
+        "libs/imgui-sfml/*.h"
+)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
@@ -10,9 +22,10 @@ FetchContent_Declare(SFML
     GIT_TAG 2.6.x)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(main src/main.cpp)
-target_link_libraries(main PRIVATE sfml-graphics)
+add_executable(main src/main.cpp ${IMGUI_SRC} ${IMGUI_SFML_SRC})
+target_link_libraries(main PRIVATE sfml-graphics sfml-window sfml-system)
 target_compile_features(main PRIVATE cxx_std_17)
+target_include_directories(main PRIVATE libs/imgui libs/imgui-sfml)
 
 if(WIN32)
     add_custom_command(
