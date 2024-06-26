@@ -22,7 +22,10 @@ FetchContent_Declare(SFML
     GIT_TAG 2.6.x)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(main src/main.cpp ${IMGUI_SRC} ${IMGUI_SFML_SRC})
+add_executable(main src/main.cpp ${IMGUI_SRC} ${IMGUI_SFML_SRC}
+        src/simulation.h
+        src/Simulation.cpp
+        src/Simulation.h)
 target_link_libraries(main PRIVATE sfml-graphics sfml-window sfml-system)
 target_compile_features(main PRIVATE cxx_std_17)
 target_include_directories(main PRIVATE libs/imgui libs/imgui-sfml)
