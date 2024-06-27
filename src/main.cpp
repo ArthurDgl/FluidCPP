@@ -25,7 +25,7 @@ int main() {
     int restartResolutionY = 50;
     Block block = {30, 33, 39, 49};
 
-    Simulation* simulation;
+    Simulation* simulation = new Simulation(1, 1);
     int cellSize;
     startSimulation(simulation, &cellSize, width, height, restartResolutionX, restartResolutionY, &block);
 
