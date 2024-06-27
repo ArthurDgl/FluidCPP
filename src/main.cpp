@@ -2,7 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include "imgui.h"
 #include "imgui-SFML.h"
-#include "Simulation.h"
+#include "simulation.h"
 
 struct Block {
     int x1;

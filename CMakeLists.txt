@@ -23,7 +23,7 @@ FetchContent_Declare(SFML
 FetchContent_MakeAvailable(SFML)
 
 add_executable(main src/main.cpp ${IMGUI_SRC} ${IMGUI_SFML_SRC}
-        src/simulation.h
+        src/Simulation.h
         src/Simulation.cpp
         src/Simulation.h)
 target_link_libraries(main PRIVATE sfml-graphics sfml-window sfml-system)

@@ -2,7 +2,7 @@
 // Created by arthu on 6/26/2024.
 //
 
-#include "Simulation.h"
+#include "simulation.h"
 
 
 Simulation::Simulation(int resolutionX, int resolutionY, float diffusionStrength, int diffusionSteps, float timeStep, int divergenceSteps, float inflowSpeed) {
