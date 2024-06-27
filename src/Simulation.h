@@ -10,6 +10,10 @@
 
 class Simulation {
 public:
+    float targetTime;
+    float simulatedTime;
+    float timeStep;
+
     int resolutionX;
     int resolutionY;
 
@@ -22,12 +26,12 @@ public:
     float** densities;
     sf::Vector2f** velocities;
 
-    Simulation(int resolutionX, int resolutionY, float diffusionStrength, float diffusionSteps);
-    Simulation(int resolutionX, int resolutionY) : Simulation(resolutionX, resolutionY, 0.05, 5) {};
+    Simulation(int resolutionX, int resolutionY, float diffusionStrength, float diffusionSteps, float timeStep);
+    Simulation(int resolutionX, int resolutionY) : Simulation(resolutionX, resolutionY, 0.5, 10, 0.01) {};
 
     void tick(float dt);
 
-    void diffuseDensity();
+    void diffuseDensity(float dt);
 };
 
 

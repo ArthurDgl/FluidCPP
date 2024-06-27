@@ -4,7 +4,11 @@
 
 #include "Simulation.h"
 
-Simulation::Simulation(int resolutionX, int resolutionY, float diffusionStrength, float diffusionSteps) {
+Simulation::Simulation(int resolutionX, int resolutionY, float diffusionStrength, float diffusionSteps, float timeStep) {
+    this->targetTime = 0;
+    this->simulatedTime = 0;
+    this->timeStep = timeStep;
+
     this->resolutionX = resolutionX;
     this->resolutionY = resolutionY;
 
@@ -40,25 +44,27 @@ Simulation::Simulation(int resolutionX, int resolutionY, float diffusionStrength
 }
 
 void Simulation::tick(float dt) {
-    diffuseDensity();
+    targetTime += dt;
+    while (targetTime > simulatedTime) {
+        simulatedTime += timeStep;
+        diffuseDensity(timeStep);
+    }
 }
 
-void Simulation::diffuseDensity() {
+void Simulation::diffuseDensity(float dt) {
+    float solution[resolutionX][resolutionY];
+    float mult = dt*diffusionStrength;
+
     for (int i = 0; i < diffusionSteps; i++) {
-        float temporary[resolutionX][resolutionY];
-
         for (int x = 0; x < resolutionX; x++) {
             for (int y = 0; y < resolutionY; y++) {
+                if (i == 0) {
+                    solution[x][y] = densities[x][y];
+                    continue;
+                }
                 if (inert[x][y]) continue;
-
-                temporary[x][y] = (densities[x+1][y] + densities[x][y+1] + densities[x-1][y] + densities[x][y-1]) / 4;
-            }
-        }
-
-        for (int x = 0; x < resolutionX; x++) {
-            for (int y = 0; y < resolutionY; y++) {
-                if (inert[x][y]) continue;
-                densities[x][y] = temporary[x][y];
+                float sum = solution[x+1][y] + solution[x][y+1] + solution[x-1][y] + solution[x][y-1];
+                densities[x][y] = (densities[x][y] + mult*sum) / (1.0f + 4.0f*mult);
             }
         }
     }
