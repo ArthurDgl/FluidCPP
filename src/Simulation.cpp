@@ -75,7 +75,11 @@ void Simulation::tick(float dt) {
 }
 
 void Simulation::diffuseDensity(float dt) {
-    float solution[resolutionX][resolutionY];
+    float** solution = new float*[resolutionX];
+    for (int x = 0; x < resolutionX; x++) {
+        solution[x] = new float[resolutionY];
+    }
+
     float mult = dt*diffusionStrength;
     float denom = 1.0f / (1.0f + 4.0f*mult);
 
@@ -96,10 +100,19 @@ void Simulation::diffuseDensity(float dt) {
             }
         }
     }
+
+    for (int x = 0; x < resolutionX; x++) {
+        delete[] solution[x];
+    }
+    delete[] solution;
 }
 
 void Simulation::diffuseVelocity(float dt) {
-    sf::Vector2f solution[resolutionX][resolutionY];
+    sf::Vector2f** solution = new sf::Vector2f*[resolutionX];
+    for (int x = 0; x < resolutionX; x++) {
+        solution[x] = new sf::Vector2f[resolutionY];
+    }
+
     float mult = dt*diffusionStrength;
     float denom = 1.0f / (1.0f + 4.0f*mult);
 
@@ -120,6 +133,11 @@ void Simulation::diffuseVelocity(float dt) {
             }
         }
     }
+
+    for (int x = 0; x < resolutionX; x++) {
+        delete[] solution[x];
+    }
+    delete[] solution;
 }
 
 float Simulation::sampleDensity(float xPos, float yPos) {
@@ -167,9 +185,10 @@ sf::Vector2f Simulation::outOfBoundsVelocity(float xPos, float yPos) {
 }
 
 void Simulation::advectDensity(float dt) {
-    float temporary[resolutionX][resolutionY];
+    float** temporary = new float*[resolutionX];
 
     for (int x = 0; x < resolutionX; x++) {
+        temporary[x] = new float[resolutionY];
         for (int y = 0; y < resolutionY; y++) {
             const sf::Vector2f dVel = velocities[x][y] * dt;
             temporary[x][y] = sampleDensity(x - dVel.x, y - dVel.y);
@@ -180,13 +199,16 @@ void Simulation::advectDensity(float dt) {
         for (int y = 0; y < resolutionY; y++) {
             densities[x][y] = temporary[x][y];
         }
+        delete[] temporary[x];
     }
+    delete[] temporary;
 }
 
 void Simulation::advectVelocity(float dt) {
-    sf::Vector2f temporary[resolutionX][resolutionY];
+    sf::Vector2f** temporary = new sf::Vector2f*[resolutionX];
 
     for (int x = 0; x < resolutionX; x++) {
+        temporary[x] = new sf::Vector2f[resolutionY];
         for (int y = 0; y < resolutionY; y++) {
             const sf::Vector2f dVel = velocities[x][y] * dt;
             temporary[x][y] = sampleVelocity(x - dVel.x, y - dVel.y);
@@ -197,7 +219,9 @@ void Simulation::advectVelocity(float dt) {
         for (int y = 0; y < resolutionY; y++) {
             velocities[x][y] = temporary[x][y];
         }
+        delete[] temporary[x];
     }
+    delete[] temporary;
 }
 
 bool Simulation::isOutOfBounds(float xPos, float yPos) {
