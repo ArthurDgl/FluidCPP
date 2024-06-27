@@ -27,7 +27,7 @@ public:
     sf::Vector2f** velocities;
 
     Simulation(int resolutionX, int resolutionY, float diffusionStrength, float diffusionSteps, float timeStep);
-    Simulation(int resolutionX, int resolutionY) : Simulation(resolutionX, resolutionY, 0.5, 10, 0.01) {};
+    Simulation(int resolutionX, int resolutionY) : Simulation(resolutionX, resolutionY, 0.5, 10, 0.001) {};
 
     void tick(float dt);
 

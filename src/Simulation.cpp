@@ -54,6 +54,7 @@ void Simulation::tick(float dt) {
 void Simulation::diffuseDensity(float dt) {
     float solution[resolutionX][resolutionY];
     float mult = dt*diffusionStrength;
+    float denom = 1.0f / (1.0f + 4.0f*mult);
 
     for (int i = 0; i < diffusionSteps; i++) {
         for (int x = 0; x < resolutionX; x++) {
@@ -64,7 +65,7 @@ void Simulation::diffuseDensity(float dt) {
                 }
                 if (inert[x][y]) continue;
                 float sum = solution[x+1][y] + solution[x][y+1] + solution[x-1][y] + solution[x][y-1];
-                densities[x][y] = (densities[x][y] + mult*sum) / (1.0f + 4.0f*mult);
+                densities[x][y] = (densities[x][y] + mult*sum) * denom;
             }
         }
     }

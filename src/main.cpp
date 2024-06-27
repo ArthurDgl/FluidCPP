@@ -49,18 +49,30 @@ int main() {
         sf::Color colorMap[] = {sf::Color::Blue, sf::Color::Green, sf::Color::Yellow};
         int mapSize = 3;
 
-        sf::RectangleShape rectangle(sf::Vector2f(cellSize, cellSize));
+        sf::VertexArray rectangles(sf::Quads, simulation->resolutionX*simulation->resolutionY*4);
         sf::Color color = sf::Color::Black;
 
         for (int x = 0; x < simulation->resolutionX; x++) {
             for (int y = 0; y < simulation->resolutionY; y++) {
-                rectangle.setPosition(static_cast<float>(x * cellSize), static_cast<float>(y * cellSize));
+                float xPos = static_cast<float>(x * cellSize);
+                float yPos = static_cast<float>(y * cellSize);
+
+                int index = (x * simulation->resolutionY + y) * 4;
+                rectangles[index].position = sf::Vector2f(xPos, yPos);
+                rectangles[index + 1].position = sf::Vector2f(xPos + cellSize, yPos);
+                rectangles[index + 2].position = sf::Vector2f(xPos + cellSize, yPos + cellSize);
+                rectangles[index + 3].position = sf::Vector2f(xPos, yPos + cellSize);
+
                 mapValueToColors(simulation->densities[x][y], valueMap, colorMap, mapSize, &color);
-                rectangle.setFillColor(color);
-                if (simulation->inert[x][y]) rectangle.setFillColor(sf::Color(50, 50, 50));
-                window.draw(rectangle);
+                if (simulation->inert[x][y]) color = sf::Color(50, 50, 50);
+
+                rectangles[index].color = color;
+                rectangles[index + 1].color = color;
+                rectangles[index + 2].color = color;
+                rectangles[index + 3].color = color;
             }
         }
+        window.draw(rectangles);
 
         ImGui::SFML::Render(window);
         window.display();
