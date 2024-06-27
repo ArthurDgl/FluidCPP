@@ -207,8 +207,9 @@ bool Simulation::isOutOfBounds(float xPos, float yPos) {
 void Simulation::clearDivergence() {
     float** divergence = computeDivergence();
 
-    float p[resolutionX][resolutionY];
+    float** p = new float*[resolutionX];
     for (int x = 0; x < resolutionX; x++) {
+        p[x] = new float[resolutionY];
         for (int y = 0; y < resolutionY; y++) {
             p[x][y] = 0;
         }
@@ -244,9 +245,11 @@ void Simulation::clearDivergence() {
     }
 
     for (int x = 0; x < resolutionX; x++) {
-        free(divergence[x]);
+        delete[] divergence[x];
+        delete[] p[x];
     }
-    free(divergence);
+    delete[] divergence;
+    delete[] p;
 }
 
 
