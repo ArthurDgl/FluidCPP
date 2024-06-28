@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "imgui-SFML.h"
 #include "simulation.h"
+#include "view.h"
 
 struct Block {
     int x1;
@@ -11,23 +12,69 @@ struct Block {
     int y2;
 };
 
+struct SimulationParameters {
+    int windowWidth;
+    int windowHeight;
+    int resolutionX;
+    int resolutionY;
+
+    Block* block;
+
+    float timeStep;
+    float runSpeed;
+
+    float diffusionStrength;
+    int diffusionSteps;
+
+    int divergenceSteps;
+
+    float inflowSpeed;
+};
+
+struct ViewParameters {
+
+};
+
 void mapValueToColors(float value, const float inputValues[], const sf::Color outputColors[], int size, sf::Color* color);
-void startSimulation(Simulation* simulation, int* cellSize, int width, int height, int resolutionX, int resolutionY, Block* block);
+void startSimulation(Simulation* simulation, int* cellSize, SimulationParameters* parameters);
+void applyParameters(Simulation* simulation, SimulationParameters* parameters);
 
 int main() {
     constexpr int width = 1200;
     constexpr int height = 800;
 
-    float runSpeed = 1.0f;
-
     bool restartSimulation = false;
-    int restartResolutionX = 150;
-    int restartResolutionY = 50;
-    Block block = {30, 33, 39, 49};
+
+    Block block = {30, 20, 39, 30};
+
+    SimulationParameters parameters = {
+        width, height,
+        200, 50,
+        &block,
+        0.05f, 1.0f,
+        0.05, 10,
+        200,
+        20.0f
+    };
 
     Simulation* simulation = new Simulation(1, 1);
     int cellSize;
-    startSimulation(simulation, &cellSize, width, height, restartResolutionX, restartResolutionY, &block);
+
+    startSimulation(simulation, &cellSize, &parameters);
+    applyParameters(simulation, &parameters);
+
+    float valueMap1[] = {-10.0f, 0.0f, 15.0f, 25.0f};
+    sf::Color colorMap1[] = {sf::Color::Blue, sf::Color::Green, sf::Color::Yellow, sf::Color::Red};
+    vXView* velocityXView = new vXView(simulation->velocities, 4, valueMap1, colorMap1);
+
+    float valueMap2[] = {0.0f, 0.33f, 0.66f, 1.0f};
+    sf::Color colorMap2[] = {sf::Color::Blue, sf::Color::Green, sf::Color::Yellow, sf::Color::Red};
+    densityView* dView = new densityView(simulation->densities, 4, valueMap2, colorMap2);
+
+    view* views[] = {velocityXView, dView};
+    const char* viewNames[] = { "Velocity X", "Density"};
+    static int currentView = 0;
+    int viewCount = 2;
 
     auto window = sf::RenderWindow{ { width, height }, "FluidCPP" };
     window.setFramerateLimit(144);
@@ -47,20 +94,25 @@ int main() {
         ImGui::SFML::Update(window, deltaClock.restart());
 
         ImGui::Begin("Real-Time Configuration");
-        // ImGui code here
+
+        ImGui::Text("View");
+        ImGui::Combo("Select View", &currentView, viewNames, viewCount);
+
+        ImGui::NewLine();
+
         float fps = std::round(100.0f/deltaTime.asSeconds()) / 100.0f;
         ImGui::Text((std::string("FPS : ") + std::to_string(fps)).c_str());
-        ImGui::InputFloat("Time Intervals", &simulation->timeStep);
-        if (simulation->timeStep < 0.01) simulation->timeStep = 0.01;
-        ImGui::InputFloat("Real-Time Ratio", &runSpeed);
+        ImGui::InputFloat("Time Intervals", &parameters.timeStep);
+        if (parameters.timeStep < 0.01) parameters.timeStep = 0.01;
+        ImGui::InputFloat("Real-Time Ratio", &parameters.runSpeed);
 
         ImGui::NewLine();
 
         ImGui::Text("Simulation Values");
-        ImGui::InputFloat("Diffusion Strength", &simulation->diffusionStrength);
-        ImGui::InputInt("Diffusion Steps /!\\*", &simulation->diffusionSteps);
-        ImGui::InputInt("Divergence Steps /!\\*", &simulation->divergenceSteps);
-        ImGui::InputFloat("Inflow Speed", &simulation->inflowSpeed);
+        ImGui::InputFloat("Diffusion Strength", &parameters.diffusionStrength);
+        ImGui::InputInt("Diffusion Steps /!\\*", &parameters.diffusionSteps);
+        ImGui::InputInt("Divergence Steps /!\\*", &parameters.divergenceSteps);
+        ImGui::InputFloat("Inflow Speed", &parameters.inflowSpeed);
 
         ImGui::NewLine();
         ImGui::Text("*/!\\ : Handle with care, can drop the FPS");
@@ -68,13 +120,15 @@ int main() {
 
         ImGui::End();
 
+        applyParameters(simulation, &parameters);
+
         ImGui::Begin("Restart Configuration");
 
         restartSimulation = ImGui::Button("RESTART");
 
         ImGui::Text("Simulation Dimensions");
-        ImGui::InputInt("ResolutionX", &restartResolutionX);
-        ImGui::InputInt("ResolutionY", &restartResolutionY);
+        ImGui::InputInt("ResolutionX", &parameters.resolutionX);
+        ImGui::InputInt("ResolutionY", &parameters.resolutionY);
 
         ImGui::NewLine();
 
@@ -86,17 +140,17 @@ int main() {
 
         ImGui::End();
 
-        if (restartSimulation) startSimulation(simulation, &cellSize, width, height, restartResolutionX, restartResolutionY, &block);
+        if (restartSimulation) {
+            startSimulation(simulation, &cellSize, &parameters);
+            velocityXView->velocities = simulation->velocities;
+            dView->densities = simulation->densities;
+        }
 
-        simulation->tick(deltaTime.asSeconds()*runSpeed);
+        simulation->tick(deltaTime.asSeconds()*parameters.runSpeed);
 
         window.clear();
 
         // SFML render code here
-        float valueMap[] = {-10.0f, 0.0f, 15.0f, 25.0f};
-        sf::Color colorMap[] = {sf::Color::Blue, sf::Color::Green, sf::Color::Yellow, sf::Color::Red};
-
-        int mapSize = 4;
 
         sf::VertexArray rectangles(sf::Quads, simulation->resolutionX*simulation->resolutionY*4);
         sf::Color color = sf::Color::Black;
@@ -112,7 +166,7 @@ int main() {
                 rectangles[index + 2].position = sf::Vector2f(xPos + cellSize, yPos + cellSize);
                 rectangles[index + 3].position = sf::Vector2f(xPos, yPos + cellSize);
 
-                mapValueToColors(simulation->velocities[x][y].x, valueMap, colorMap, mapSize, &color);
+                views[currentView]->getColorAt(x, y, &color);
                 if (simulation->solid[x][y]) color = sf::Color(50, 50, 50);
 
                 rectangles[index].color = color;
@@ -131,33 +185,21 @@ int main() {
     return 0;
 }
 
-void startSimulation(Simulation* simulation, int* cellSize, int width, int height, int resolutionX, int resolutionY, Block* block) {
-    *simulation = *new Simulation(resolutionX, resolutionY);
+void startSimulation(Simulation* simulation, int* cellSize, SimulationParameters* parameters) {
+    *simulation = *new Simulation(parameters->resolutionX, parameters->resolutionY);
 
-    simulation->setSolidBlock(block->x1, block->y1, block->x2, block->y2);
+    simulation->setSolidBlock(parameters->block->x1, parameters->block->y1, parameters->block->x2, parameters->block->y2);
 
-    *cellSize = width / simulation->resolutionX;
-    if (*cellSize > height / simulation->resolutionY) *cellSize = height / simulation->resolutionY;
+    *cellSize = parameters->windowWidth / simulation->resolutionX;
+    if (*cellSize > parameters->windowHeight / simulation->resolutionY) *cellSize = parameters->windowHeight / simulation->resolutionY;
 }
 
-void mapValueToColors(float value, const float inputValues[], const sf::Color outputColors[], int size, sf::Color* color) {
-    if (value <= inputValues[0]) {
-        *color = outputColors[0];
-        return;
-    }
-
-    if (value >= inputValues[size - 1]) {
-        *color = outputColors[size - 1];
-        return;
-    }
-
-    for (int i = 0; i < size - 1; ++i) {
-        if (value >= inputValues[i] && value <= inputValues[i + 1]) {
-            float interFactor = (value - inputValues[i]) / (inputValues[i + 1] - inputValues[i]);
-            color->r = static_cast<sf::Uint8>((1 - interFactor) * outputColors[i].r + interFactor * outputColors[i + 1].r);
-            color->g = static_cast<sf::Uint8>((1 - interFactor) * outputColors[i].g + interFactor * outputColors[i + 1].g);
-            color->b = static_cast<sf::Uint8>((1 - interFactor) * outputColors[i].b + interFactor * outputColors[i + 1].b);
-            return;
-        }
-    }
+void applyParameters(Simulation *simulation, SimulationParameters *parameters) {
+    simulation->diffusionStrength = parameters->diffusionStrength;
+    simulation->diffusionSteps = parameters->diffusionSteps;
+    simulation->divergenceSteps = parameters->divergenceSteps;
+    simulation->timeStep = parameters->timeStep;
+    simulation->inflowSpeed = parameters->inflowSpeed;
 }
+
+
