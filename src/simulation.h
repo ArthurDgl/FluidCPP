@@ -56,6 +56,10 @@ public:
     void setInflow();
 
     void setSolidBlock(int x1, int y1, int x2, int y2);
+
+    void setSolidTriangle(int x1, int y1, int l1, int h, int l2);
+
+    void setSolidCircle(int x, int y, int radius);
 };
 
 

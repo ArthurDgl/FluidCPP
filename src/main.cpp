@@ -45,13 +45,13 @@ int main() {
 
     bool restartSimulation = false;
 
-    Block block = {30, 20, 39, 30};
+    Block block = {30, 32, 39, 48};
 
     SimulationParameters parameters = {
         width, height,
-        200, 50,
+        400, 100,
         &block,
-        0.05f, 1.0f,
+        0.05f, 0.25f,
         0.05, 10,
         200,
         20.0f
@@ -188,7 +188,9 @@ int main() {
 void startSimulation(Simulation* simulation, int* cellSize, SimulationParameters* parameters) {
     *simulation = *new Simulation(parameters->resolutionX, parameters->resolutionY);
 
-    simulation->setSolidBlock(parameters->block->x1, parameters->block->y1, parameters->block->x2, parameters->block->y2);
+    //simulation->setSolidBlock(parameters->block->x1, parameters->block->y1, parameters->block->x2, parameters->block->y2);
+    //simulation->setSolidTriangle(30, 99, 51, 17, 24);
+    simulation->setSolidCircle(80, 50, 20);
 
     *cellSize = parameters->windowWidth / simulation->resolutionX;
     if (*cellSize > parameters->windowHeight / simulation->resolutionY) *cellSize = parameters->windowHeight / simulation->resolutionY;

@@ -83,7 +83,7 @@ void Simulation::diffuseDensity(float dt) {
     float mult = dt*diffusionStrength;
     float denom = 1.0f / (1.0f + 4.0f*mult);
 
-    for (int i = 0; i < diffusionSteps; i++) {
+    for (int i = 0; i < diffusionSteps + 1; i++) {
         for (int x = 0; x < resolutionX; x++) {
             for (int y = 0; y < resolutionY; y++) {
                 if (i == 0) {
@@ -94,7 +94,7 @@ void Simulation::diffuseDensity(float dt) {
                 float sum = solution[x+1][y] + solution[x][y+1] + solution[x-1][y] + solution[x][y-1];
                 solution[x][y] = (densities[x][y] + mult*sum) * denom;
 
-                if (i == diffusionSteps - 1) {
+                if (i == diffusionSteps) {
                     densities[x][y] = solution[x][y];
                 }
             }
@@ -116,7 +116,7 @@ void Simulation::diffuseVelocity(float dt) {
     float mult = dt*diffusionStrength;
     float denom = 1.0f / (1.0f + 4.0f*mult);
 
-    for (int i = 0; i < diffusionSteps; i++) {
+    for (int i = 0; i < diffusionSteps + 1; i++) {
         for (int x = 0; x < resolutionX; x++) {
             for (int y = 0; y < resolutionY; y++) {
                 if (i == 0) {
@@ -127,7 +127,7 @@ void Simulation::diffuseVelocity(float dt) {
                 sf::Vector2f sum = solution[x+1][y] + solution[x][y+1] + solution[x-1][y] + solution[x][y-1];
                 solution[x][y] = (velocities[x][y] + mult*sum) * denom;
 
-                if (i == diffusionSteps - 1) {
+                if (i == diffusionSteps) {
                     velocities[x][y] = solution[x][y];
                 }
             }
@@ -320,6 +320,40 @@ void Simulation::setSolidBlock(int x1, int y1, int x2, int y2) {
         for (int y = y1; y <= y2; y++) {
             inert[x][y] = true;
             solid[x][y] = true;
+        }
+    }
+}
+
+void Simulation::setSolidTriangle(int x1, int y1, int l1, int h, int l2) {
+    float slope1 = h / static_cast<float>(l1);
+    float slope2 = -h / static_cast<float>(l2);
+
+    for (int i = 0; i <= l1; i++) {
+        for (int j = 0; j <= std::ceil(i * slope1); j++) {
+            int x = x1 + i;
+            int y = y1 - j;
+            inert[x][y] = true;
+            solid[x][y] = true;
+        }
+    }
+
+    for (int i = 0; i <= l2; i++) {
+        for (int j = 0; j <= std::ceil(h + i * slope2); j++) {
+            int x = x1 + l1 + i;
+            int y = y1 - j;
+            inert[x][y] = true;
+            solid[x][y] = true;
+        }
+    }
+}
+
+void Simulation::setSolidCircle(int centerX, int centerY, int radius) {
+    for (int x = centerX - radius; x <= centerX + radius; x++) {
+        for (int y = centerY - radius; y <= centerY + radius; y++) {
+            if (pow(centerX - x, 2) + pow(centerY - y, 2) < radius*radius) {
+                inert[x][y] = true;
+                solid[x][y] = true;
+            }
         }
     }
 }
